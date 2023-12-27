@@ -21,4 +21,5 @@
             "runIn": "backend"
         },
     ],
+    "satysfi-workshop.build.rootFile": "test.saty",
 }
