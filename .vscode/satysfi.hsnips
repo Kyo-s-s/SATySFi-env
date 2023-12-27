@@ -1,0 +1,3 @@
+snippet ;; "[HS] inline math" A
+${ $1 } $0
+endsnippet

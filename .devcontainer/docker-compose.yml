@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  satysfi-docker:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../:/home/work
+    tty: true

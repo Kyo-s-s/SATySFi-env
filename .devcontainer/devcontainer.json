@@ -1,0 +1,15 @@
+{
+    "name": "satysfi-docker",
+    "dockerComposeFile": "docker-compose.yml",
+    "extensions": [
+        "wraikny.wraikny-satysfi-extension",
+        "pickoba.satysfi-workshop",
+        "GitHub.copilot",
+        "draivin.hsnips",
+        "pucelle.run-on-save",
+        "James-Yu.latex-workshop"
+    ],
+    "service": "satysfi-docker",
+    "workspaceFolder": "/home/work",
+    "shutdownAction": "stopCompose"
+}

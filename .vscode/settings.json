@@ -1,0 +1,24 @@
+{
+    "hsnips.hsnipsPath": ".vscode",
+    "satysfi-workshop.executable": "/root/.opam/4.14.0/bin/satysfi",
+    "satysfi-workshop.mathPreview.when": "onHover",
+    "satysfi-workshop.mathPreview.pdf2svg": "pdf2svg",
+    "satysfi-workshop.languageServer.enabled": true,
+    "satysfi-workshop.languageServer.path": "/root/.cargo/bin/satysfi-language-server",
+    "satysfi-workshop.build.when": "onSave",
+    "files.watcherInclude": [
+        "**/*.saty"
+    ],
+    "runOnSave.commands": [
+        {
+            "match": "\\.saty$",
+            "command": "/home/work/lint.sh ${file}",
+            "runIn": "backend"
+        },
+        {
+            "match": "\\.satyh$",
+            "command": "/home/work/lint.sh ${file}",
+            "runIn": "backend"
+        },
+    ],
+}
