@@ -1,0 +1,27 @@
+@require: azmath/azmath
+
+module Popopo: sig
+  direct +eqn: [math] block-cmd
+  direct \eqn: [math] inline-cmd
+  direct +align: [math list] block-cmd
+  direct \align: [math list] inline-cmd
+  direct +gather: [math list] block-cmd
+  direct \gather: [math list] inline-cmd
+end = struct
+  let-block ctx +eqn inner =
+    read-block ctx '<
+      +AZMathEquation.eqn ?:(AZMathEquation.notag) (inner);
+    >
+  let-block ctx +align inner =
+    read-block ctx '<
+      +AZMathEquation.align ?:(AZMathEquation.notag) (inner);
+    >
+  let-block ctx +gather inner =
+    read-block ctx '<
+      +AZMathEquation.gather ?:(AZMathEquation.notag) (inner);
+    >
+
+  let-inline ctx \eqn inner = read-inline ctx { \AZMathEquation.eqn ?:(AZMathEquation.notag) (inner); }
+  let-inline ctx \align inner = read-inline ctx { \AZMathEquation.align ?:(AZMathEquation.notag) (inner); }
+  let-inline ctx \gather inner = read-inline ctx { \AZMathEquation.gather ?:(AZMathEquation.notag) (inner); }
+end
