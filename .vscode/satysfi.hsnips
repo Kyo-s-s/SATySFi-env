@@ -1,3 +1,11 @@
 snippet ;; "[HS] inline math" A
 ${ $1 } $0
 endsnippet
+
+snippet `([\\a-zA-Z0-9_^+-/={}]+);;` "[HS] convert math inline" A
+`` rv = `$\{ ${m[1]} \} ` ``
+endsnippet
+
+snippet `\b([A-Z])bb` " [HS] Math bb" A
+`` rv = `\\mathbb{${m[1]}} ` ``
+endsnippet
