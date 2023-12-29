@@ -1,0 +1,48 @@
+@require: color
+@require: gr
+
+type thmbox-config = (|
+  line-gap: length;
+  thick: length;
+|)
+
+module Thmbox: sig
+  val default-config: thmbox-config
+  val theorem-scheme: thmbox-config -> context -> inline-text -> block-text -> block-boxes
+  direct +theorem: [
+    inline-text;
+    block-text;
+  ] block-cmd
+end = struct
+  let default-config =
+    (|
+      line-gap = 7pt;
+      thick = 0.8pt;
+    |)
+
+  let theorem-scheme config ctx title inner =
+    let line-gap = config#line-gap in
+    let thick = config#thick in
+    let font-size = (get-font-size ctx) in
+    let title =
+      let line (x, y) w h d =
+        [
+          stroke thick Color.black (Gr.line (x, y -' d) (x +' w, y -' d));
+        ] in
+      let inline-title = inline-frame-inner (2pt, 2pt, 2pt, 2pt) line (read-inline ctx title) in line-break true true ctx inline-title in
+    let inner =
+      let line (x, y) w h d =
+        [
+          stroke thick Color.black (Gr.line (x +' font-size, y -' line-gap) (x +' font-size, y +' h +' line-gap));
+        ] in
+      let pads = (font-size +' font-size, 0pt, 0pt, 0pt) in
+      let decoset = (line, line, line, line) in block-frame-breakable ctx pads decoset (fun ctx -> read-block ctx inner) in
+    let fin =
+      let fin-inline =
+        inline-graphics 0pt 0pt 0pt (fun (x, y) -> List.map (stroke thick Color.black) [
+          Gr.line (x +' font-size, y) (x +' font-size +' 30pt, y);
+        ]) in line-break true true ctx fin-inline in
+    let result = title +++ inner +++ fin in result
+
+  let-block ctx +theorem = theorem-scheme default-config ctx
+end
