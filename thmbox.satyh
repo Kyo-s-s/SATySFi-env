@@ -14,10 +14,12 @@ module Thmbox: sig
   val default-config: thmbox-config
   val thmbox-scheme: thmbox-config -> context -> inline-boxes -> block-text -> block-boxes
   direct +theorem: [
+    string?;
     inline-text?;
     block-text;
   ] block-cmd
   direct +definition: [
+    string?;
     inline-text?;
     block-text;
   ] block-cmd
@@ -58,12 +60,16 @@ end = struct
         ]) in line-break true true ctx fin-inline in
     let result = title +++ inner +++ fin in result
 
-  let theorem-scheme config ctx kind counter ?:title inner =
+  let theorem-scheme config ctx kind counter ?:label ?:title inner =
     let font-size = get-font-size ctx in
     let space = inline-skip (font-size *' 0.5) in
+    let () = counter <- !counter + 1 in
+    let () =
+      match label with
+        | None -> ()
+        | Some(label) -> register-cross-reference (label ^ `:num`) (config#number-format !counter) in
     let kind = read-inline ctx kind in
     let number =
-      let () = counter <- !counter + 1 in
       let result = space ++ read-inline ctx (embed-string (config#number-format !counter)) in result in
     let title =
       match title with
