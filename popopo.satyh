@@ -7,6 +7,7 @@ let-math \lt = ${<}
 let-math \gt = ${>}
 
 module Popopo: sig
+  direct +set-section-counter: [int] block-cmd
   direct +eqn: [math] block-cmd
   direct \eqn: [math] inline-cmd
   direct +align: [math list] block-cmd
@@ -38,7 +39,18 @@ module Popopo: sig
     inline-text?;
     block-text;
   ] block-cmd
+  direct +proof: [
+    inline-text?;
+    block-text;
+  ] block-cmd
+  direct +exapmle: [
+    inline-text?;
+    block-text;
+  ] block-cmd
 end = struct
+  let-block ctx +set-section-counter n =
+    let update number = number <- n in
+    let () = update JLReq.section-counter in block-nil
   let-block ctx +eqn inner =
     read-block ctx '<
       +AZMathEquation.eqn ?:(AZMathEquation.notag) (inner);
@@ -67,4 +79,24 @@ end = struct
   let-block ctx +lem = Thmbox.theorem-scheme thmbox-config ctx { Lem } Thmbox.counter
   let-block ctx +prop = Thmbox.theorem-scheme thmbox-config ctx { Prop } Thmbox.counter
   let-block ctx +cor = Thmbox.theorem-scheme thmbox-config ctx { Cor } Thmbox.counter
+  let-block ctx +proof =
+    let font-size = get-font-size ctx in
+    let size = font-size *' 0.8 in
+    let qedsymbol =
+      inline-graphics size size 0pt (fun (x, y) -> [
+        stroke 0.5pt Color.black (Gr.rectangle (x, y) (x +' size, y +' size));
+      ]) in
+      JLReqProof.proof-scheme ctx (|
+        qedsymbol = (fun _ -> qedsymbol);
+        space-after-label = ~(jlreq-length @`1zw`);
+        proofname = { Proof: };
+        font-label = [bold;];
+      |)
+  let-block ctx +exapmle =
+    JLReqProof.proof-scheme ctx (|
+      qedsymbol = (fun _ -> inline-nil);
+      space-after-label = ~(jlreq-length @`1zw`);
+      proofname = { Example: };
+      font-label = [bold;];
+    |)
 end
