@@ -1,5 +1,6 @@
 @require: class-jlreq/jlreq
 @require: azmath/azmath
+@require: figbox/figbox
 @import: thmbox
 
 let-math \mod = math-char MathOp `mod`
@@ -7,7 +8,9 @@ let-math \lt = ${<}
 let-math \gt = ${>}
 
 module Popopo: sig
+  val caption-fig: FigBox.figbox -> string ?-> inline-text -> FigBox.figbox
   direct +set-section-counter: [int] block-cmd
+  direct +set-subsection-counter: [int] block-cmd
   direct +eqn: [math] block-cmd
   direct \eqn: [math] inline-cmd
   direct +align: [math list] block-cmd
@@ -47,10 +50,22 @@ module Popopo: sig
     inline-text?;
     block-text;
   ] block-cmd
+  direct +remark: [
+    inline-text?;
+    block-text;
+  ] block-cmd
+  direct +note: [
+    inline-text?;
+    block-text;
+  ] block-cmd
+  direct \figref: [string] inline-cmd
 end = struct
   let-block ctx +set-section-counter n =
     let update number = number <- n in
     let () = update JLReq.section-counter in block-nil
+  let-block ctx +set-subsection-counter n =
+    let update number = number <- n in
+    let () = update JLReq.subsection-counter in block-nil
   let-block ctx +eqn inner =
     read-block ctx '<
       +AZMathEquation.eqn ?:(AZMathEquation.notag) (inner);
@@ -92,11 +107,40 @@ end = struct
         proofname = { Proof: };
         font-label = [bold;];
       |)
-  let-block ctx +exapmle =
-    JLReqProof.proof-scheme ctx (|
+
+  let example-config =
+    (|
       qedsymbol = (fun _ -> inline-nil);
       space-after-label = ~(jlreq-length @`1zw`);
       proofname = { Example: };
       font-label = [bold;];
     |)
+
+  let-block ctx +exapmle = JLReqProof.proof-scheme ctx example-config
+  let-block ctx +remark =
+    JLReqProof.proof-scheme ctx (|
+      example-config with proofname = { Remark: };
+    |)
+  let-block ctx +note =
+    JLReqProof.proof-scheme ctx (|
+      example-config with proofname = { Note: };
+    |)
+
+  let-mutable figure-counter <- 0
+
+  let caption-fig fig ?:label caption =
+    let () = figure-counter <- !figure-counter + 1 in
+    let () =
+      match label with
+        | None -> ()
+        | Some(label) -> register-cross-reference (`fig:` ^ label ^ `:num`) (arabic !figure-counter) in
+    let number = embed-string (arabic !figure-counter) in
+      FigBox.vconcat ?:FigBox.align-center [
+        fig;
+        FigBox.gap 10pt;
+        FigBox.textbox { Figure #number;: #caption; };
+      ]
+
+  let-inline \figref label =
+    let label = `fig:` ^ label in { Figure \ref (label); }
 end

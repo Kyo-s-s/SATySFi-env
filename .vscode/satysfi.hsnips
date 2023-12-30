@@ -6,6 +6,12 @@ snippet `([\\a-zA-Z0-9_^+-/={}]+);;` "[HS] convert math inline" A
 `` rv = `$\{ ${m[1]} \} ` ``
 endsnippet
 
-snippet `\b([A-Z])bb` " [HS] Math bb" A
+snippet `\bbb([A-Z])` " [HS] Math bb" A
 `` rv = `\\mathbb{${m[1]}} ` ``
 endsnippet
+
+snippet `\bcal([A-Z])` " [HS] Math cal" A
+`` rv = `\\mathcal{${m[1]}} ` ``
+endsnippet
+
+
