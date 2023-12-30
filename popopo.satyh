@@ -1,4 +1,10 @@
+@require: class-jlreq/jlreq
 @require: azmath/azmath
+@import: thmbox
+
+let-math \mod = math-char MathOp `mod`
+let-math \lt = ${<}
+let-math \gt = ${>}
 
 module Popopo: sig
   direct +eqn: [math] block-cmd
@@ -7,6 +13,31 @@ module Popopo: sig
   direct \align: [math list] inline-cmd
   direct +gather: [math list] block-cmd
   direct \gather: [math list] inline-cmd
+  direct +thm: [
+    string?;
+    inline-text?;
+    block-text;
+  ] block-cmd
+  direct +def: [
+    string?;
+    inline-text?;
+    block-text;
+  ] block-cmd
+  direct +lem: [
+    string?;
+    inline-text?;
+    block-text;
+  ] block-cmd
+  direct +prop: [
+    string?;
+    inline-text?;
+    block-text;
+  ] block-cmd
+  direct +cor: [
+    string?;
+    inline-text?;
+    block-text;
+  ] block-cmd
 end = struct
   let-block ctx +eqn inner =
     read-block ctx '<
@@ -24,4 +55,16 @@ end = struct
   let-inline ctx \eqn inner = read-inline ctx { \AZMathEquation.eqn ?:(AZMathEquation.notag) (inner); }
   let-inline ctx \align inner = read-inline ctx { \AZMathEquation.align ?:(AZMathEquation.notag) (inner); }
   let-inline ctx \gather inner = read-inline ctx { \AZMathEquation.gather ?:(AZMathEquation.notag) (inner); }
+
+  let thmbox-config =
+    (|
+      Thmbox.default-config with number-format = (fun n -> (arabic !JLReq.section-counter) ^ `.` ^ (arabic n));
+      theorem-format = (fun str -> str);
+    |)
+
+  let-block ctx +thm = Thmbox.theorem-scheme thmbox-config ctx { Thm } Thmbox.counter
+  let-block ctx +def = Thmbox.theorem-scheme thmbox-config ctx { Def } Thmbox.counter
+  let-block ctx +lem = Thmbox.theorem-scheme thmbox-config ctx { Lem } Thmbox.counter
+  let-block ctx +prop = Thmbox.theorem-scheme thmbox-config ctx { Prop } Thmbox.counter
+  let-block ctx +cor = Thmbox.theorem-scheme thmbox-config ctx { Cor } Thmbox.counter
 end
