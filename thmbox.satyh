@@ -1,3 +1,5 @@
+@require: fss/fss
+@require: fss/style
 @require: color
 @require: gr
 
@@ -5,6 +7,7 @@ type thmbox-config = (|
   line-gap: length;
   thick: length;
   underline: length;
+  theorem-font: style list;
   number-format: int -> string;
   theorem-format: inline-text -> inline-text;
 |)
@@ -47,6 +50,7 @@ end = struct
       line-gap = 7pt;
       thick = 0.8pt;
       underline = 30pt;
+      theorem-font = [bold;];
       number-format = arabic;
       theorem-format = (fun title -> { (#title;) });
     |)
@@ -79,18 +83,19 @@ end = struct
   let theorem-scheme config ctx kind counter ?:label ?:title inner =
     let font-size = get-font-size ctx in
     let space = inline-skip (font-size *' 0.5) in
+    let apply-font text = { \font-style (config#theorem-font) { #text; } } in
     let () = counter <- !counter + 1 in
     let () =
       match label with
         | None -> ()
         | Some(label) -> register-cross-reference (label ^ `:num`) (config#number-format !counter) in
-    let kind = read-inline ctx kind in
+    let kind = read-inline ctx (apply-font kind) in
     let number =
-      let result = space ++ read-inline ctx (embed-string (config#number-format !counter)) in result in
+      let result = space ++ read-inline ctx (apply-font (embed-string (config#number-format !counter))) in result in
     let title =
       match title with
         | None -> kind ++ number
-        | Some(title) -> kind ++ number ++ space ++ (read-inline ctx (config#theorem-format title)) in
+        | Some(title) -> kind ++ number ++ space ++ (read-inline ctx (apply-font (config#theorem-format title))) in
     let result = thmbox-scheme config ctx title inner in result
 
   let-block ctx +theorem = theorem-scheme default-config ctx { Theorem } counter
