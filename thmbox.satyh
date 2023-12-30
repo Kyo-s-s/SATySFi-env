@@ -10,9 +10,10 @@ type thmbox-config = (|
 |)
 
 module Thmbox: sig
-  val theorem-counter: int ref
+  val counter: int ref
   val default-config: thmbox-config
   val thmbox-scheme: thmbox-config -> context -> inline-boxes -> block-text -> block-boxes
+  val theorem-scheme: thmbox-config -> context -> inline-text -> int ref -> string ?-> inline-text ?-> block-text -> block-boxes
   direct +theorem: [
     string?;
     inline-text?;
@@ -23,8 +24,23 @@ module Thmbox: sig
     inline-text?;
     block-text;
   ] block-cmd
+  direct +lemma: [
+    string?;
+    inline-text?;
+    block-text;
+  ] block-cmd
+  direct +proposition: [
+    string?;
+    inline-text?;
+    block-text;
+  ] block-cmd
+  direct +corollary: [
+    string?;
+    inline-text?;
+    block-text;
+  ] block-cmd
 end = struct
-  let-mutable theorem-counter <- 0
+  let-mutable counter <- 0
 
   let default-config =
     (|
@@ -77,6 +93,9 @@ end = struct
         | Some(title) -> kind ++ number ++ space ++ (read-inline ctx (config#theorem-format title)) in
     let result = thmbox-scheme config ctx title inner in result
 
-  let-block ctx +theorem = theorem-scheme default-config ctx { Thm } theorem-counter
-  let-block ctx +definition = theorem-scheme default-config ctx { Def } theorem-counter
+  let-block ctx +theorem = theorem-scheme default-config ctx { Theorem } counter
+  let-block ctx +definition = theorem-scheme default-config ctx { Definition } counter
+  let-block ctx +lemma = theorem-scheme default-config ctx { Lemma } counter
+  let-block ctx +proposition = theorem-scheme default-config ctx { Proposition } counter
+  let-block ctx +corollary = theorem-scheme default-config ctx { Corollary } counter
 end
