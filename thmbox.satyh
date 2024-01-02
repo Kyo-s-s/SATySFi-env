@@ -17,6 +17,7 @@ module Thmbox: sig
   val default-config: thmbox-config
   val thmbox-scheme: thmbox-config -> context -> inline-boxes -> block-text -> block-boxes
   val theorem-scheme: thmbox-config -> context -> inline-text -> int ref -> string ?-> inline-text ?-> block-text -> block-boxes
+  val thmref-scheme: context -> string -> inline-text -> string -> inline-boxes
   direct +theorem: [
     string?;
     inline-text?;
@@ -42,6 +43,11 @@ module Thmbox: sig
     inline-text?;
     block-text;
   ] block-cmd
+  direct \thmref: [string] inline-cmd
+  direct \defref: [string] inline-cmd
+  direct \lemref: [string] inline-cmd
+  direct \propref: [string] inline-cmd
+  direct \corref: [string] inline-cmd
 end = struct
   let-mutable counter <- 0
 
@@ -85,17 +91,18 @@ end = struct
     let space = inline-skip (font-size *' 0.5) in
     let apply-font text = { \font-style (config#theorem-font) { #text; } } in
     let () = counter <- !counter + 1 in
-    let () =
+    let link =
       match label with
-        | None -> ()
-        | Some(label) -> register-cross-reference (label ^ `:num`) (config#number-format !counter) in
+        | None -> inline-nil
+        | Some(label) -> let () = register-cross-reference (label ^ `:num`) (config#number-format !counter) in
+        let f _ (x, y) = register-destination (label ^ `:num`) (x, y +' font-size) in hook-page-break f in
     let kind = read-inline ctx (apply-font kind) in
     let number =
       let result = space ++ read-inline ctx (apply-font (embed-string (config#number-format !counter))) in result in
     let title =
       match title with
-        | None -> kind ++ number
-        | Some(title) -> kind ++ number ++ space ++ (read-inline ctx (apply-font (config#theorem-format title))) in
+        | None -> link ++ kind ++ number
+        | Some(title) -> link ++ kind ++ number ++ space ++ (read-inline ctx (apply-font (config#theorem-format title))) in
     let result = thmbox-scheme config ctx title inner in result
 
   let-block ctx +theorem = theorem-scheme default-config ctx { Theorem } counter
@@ -103,4 +110,21 @@ end = struct
   let-block ctx +lemma = theorem-scheme default-config ctx { Lemma } counter
   let-block ctx +proposition = theorem-scheme default-config ctx { Proposition } counter
   let-block ctx +corollary = theorem-scheme default-config ctx { Corollary } counter
+
+  let thmref-scheme ctx prefix kind key =
+    let key = prefix ^ key ^ `:num` in
+    let ref =
+      match (get-cross-reference key) with
+        | None -> { ? }
+        | Some(v) -> embed-string v in
+    let inner = read-inline ctx { #kind; #ref; } in
+    let hook =
+      let (w, h, d) = get-natural-metrics inner in
+      let f _ pos = register-link-to-location key pos w h d None in hook-page-break f in hook ++ inner
+
+  let-inline ctx \thmref = thmref-scheme ctx `thm:` { Theorem }
+  let-inline ctx \defref = thmref-scheme ctx `def:` { Definition }
+  let-inline ctx \lemref = thmref-scheme ctx `lem:` { Lemma }
+  let-inline ctx \propref = thmref-scheme ctx `prop:` { Proposition }
+  let-inline ctx \corref = thmref-scheme ctx `cor:` { Corollary }
 end
